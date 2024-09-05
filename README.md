@@ -31,26 +31,13 @@ Aptos Poker is a privacy-preserving Texas Hold'em poker game implemented on the 
    cd aptos-poker
    ```
 
-2. Install dependencies:
+2. Compile Move contracts:
    ```
-   yarn install
-   ```
-
-3. Compile Move contracts:
-   ```
-   aptos move compile --package-dir move
+   aptos move compile --skip-fetch-latest-git-deps --package-dir move
    ```
 
-4. Run Move tests:
-   ```
-   aptos move test --package-dir move
-   ```
-
-5. Start the frontend:
-   ```
-   cd frontend
-   yarn start
-   ```
+3. Start the frontend:
+   WIP
 
 ## Usage
 
