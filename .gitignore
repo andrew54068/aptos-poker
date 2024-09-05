@@ -1,0 +1,4 @@
+.aptos/
+.aptos_prev/
+build/
+config.yaml

@@ -1,0 +1,13 @@
+[package]
+name = 'AptosShuffle'
+version = '1.0.0'
+
+[addresses]
+std = "0x1"
+aptos_poker = "8e5a730edcaf174b891dfbaf1040522192a6c52b8b550ddf899e5342891d15eb"
+default = "ab8daab331efb8bcb5b2c30e4febe039113c908b37b51f38980345e55c60cf0c"
+
+[dependencies.AptosFramework]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'mainnet'
+subdir = 'aptos-move/framework/aptos-framework'
