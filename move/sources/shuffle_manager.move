@@ -586,7 +586,10 @@ module aptos_poker::shuffle_manager {
         let i = 0;
         while (i < vector::length(&game.deck.cards)) {
             if (bit_map::get(&game.deck.cards_to_deal, i)) {
-                update_decrypted_card(game_id, i, *vector::borrow(&proofs, counter), *vector::borrow(&decrypted_cards, counter), *vector::borrow(&init_deltas, counter));
+                let proof = vector::borrow(&proofs, counter);
+                let decrypted_card = vector::borrow(&decrypted_cards, counter);
+                let init_delta = vector::borrow(&init_deltas, counter);
+                update_decrypted_card_internal(game, i, proof, decrypted_card, init_delta);
                 counter = counter + 1;
             };
             if (counter == number_cards_to_deal) {
@@ -611,6 +614,29 @@ module aptos_poker::shuffle_manager {
         } else {
             emit_player_turn(game_id, game.current_player_index, 3); // 3 for Deal state
         };
+    }
+
+    fun update_decrypted_card_internal(
+        game: &mut Game,
+        card_index: u64,
+        proof: &ShuffleProof,
+        decrypted_card: &Card,
+        init_delta: &vector<u256>
+    ) acquires ShuffleVerifier, VerifierInterface {
+        assert!(!bit_map::get(vector::borrow(&game.deck.decrypt_record, card_index), game.current_player_index), EINVALID_STATE);
+
+        if (bit_map::get(vector::borrow(&game.deck.decrypt_record, card_index), 0) == false) {
+            let y0 = curve_baby_jubjub::recover_y(*vector::borrow(&game.deck.x0, card_index), *vector::borrow(init_delta, 0), bit_map::get(&game.deck.selector0, card_index));
+            let y1 = curve_baby_jubjub::recover_y(*vector::borrow(&game.deck.x1, card_index), *vector::borrow(init_delta, 1), bit_map::get(&game.deck.selector1, card_index));
+            *vector::borrow_mut(&mut game.deck.y0, card_index) = y0;
+            *vector::borrow_mut(&mut game.deck.y1, card_index) = y1;
+        };
+
+        verify_decrypt_proof(game, proof, decrypted_card, card_index);
+
+        *vector::borrow_mut(&mut game.deck.x1, card_index) = decrypted_card.x1;
+        *vector::borrow_mut(&mut game.deck.y1, card_index) = decrypted_card.y1;
+        bit_map::set(vector::borrow_mut(&mut game.deck.decrypt_record, card_index), game.current_player_index);
     }
 
     fun update_decrypted_card(
@@ -711,7 +737,9 @@ module aptos_poker::shuffle_manager {
         let i = 0;
         while (i < vector::length(&game.deck.cards)) {
             if (bit_map::get(&cards, i)) {
-                update_decrypted_card(game_id, i, *vector::borrow(&proofs, counter), *vector::borrow(&decrypted_cards, counter), dummy);
+                let proof = vector::borrow(&proofs, counter);
+                let decrypted_card = vector::borrow(&decrypted_cards, counter);
+                update_decrypted_card_internal(game, i, proof, decrypted_card, &dummy);
                 counter = counter + 1;
             };
             if (counter == number_cards_to_open) {
